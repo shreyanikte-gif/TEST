@@ -17,7 +17,7 @@ It can:
 Run the parser from the command line:
 
 ```bash
-python ai_parser.py "Please help with broken order ABCD-1234. Email me at sam@example.com" --pretty
+python3 ai_parser.py "Please help with broken order ABCD-1234. Email me at sam@example.com" --pretty
 ```
 
 Abbreviated example output:
@@ -27,7 +27,7 @@ Abbreviated example output:
   "original_text": "Please help with broken order ABCD-1234. Email me at sam@example.com",
   "normalized_text": "please help with broken order abcd-1234. email me at sam@example.com",
   "intent": "customer_support",
-  "confidence": 0.429,
+  "confidence": 0.25,
   "entities": {
     "emails": ["sam@example.com"],
     "phones": [],
@@ -36,12 +36,12 @@ Abbreviated example output:
     "order_ids": ["ABCD-1234"]
   },
   "keywords": ["help", "broken", "order", "abcd", "1234", "email", "sam", "example", "com"],
-  "explanation": "Matched intent 'customer_support' because the message contained these keywords: broken, help, order.",
+  "explanation": "Matched intent 'customer_support' because the message contained these keywords: broken, help.",
   "intent_scores": [
     {
       "intent": "customer_support",
-      "score": 0.429,
-      "matched_keywords": ["broken", "help", "order"]
+      "score": 0.25,
+      "matched_keywords": ["broken", "help"]
     }
   ]
 }
@@ -81,5 +81,5 @@ prototypes, and small routing workflows where predictable behavior matters.
 ## Run tests
 
 ```bash
-python -m unittest
+python3 -m unittest
 ```
