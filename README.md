@@ -10,7 +10,14 @@ It can:
 - extract useful entities like email addresses, phone numbers, dates, money, and
   order IDs
 - return keywords and an explanation showing why the parser chose an intent
+- parse a UTF-8 text or Markdown document from a file
 - run as either a Python library or a command-line tool
+
+## Where the code is
+
+- Parser library and CLI: [`ai_parser.py`](./ai_parser.py)
+- Tests: [`test_ai_parser.py`](./test_ai_parser.py)
+- Usage guide: this README
 
 ## Quick start
 
@@ -49,14 +56,45 @@ Abbreviated example output:
 
 The full output includes a score entry for every configured intent.
 
+## Parse a document
+
+Put your document in a UTF-8 text file, for example `sample.md`:
+
+```markdown
+Please help with broken order ABCD-1234.
+
+Schedule a meeting on 2026-06-19 with alex@example.com.
+```
+
+Then run:
+
+```bash
+python3 ai_parser.py --file sample.md --pretty
+```
+
+Document output includes:
+
+- `source`: the file path that was parsed
+- `document_stats`: character, word, line, and chunk counts
+- `overall`: one parse result for the whole document
+- `chunks`: parse results for each paragraph-like block separated by blank lines
+
+The built-in file parser supports plain UTF-8 text, including `.txt` and `.md`.
+For PDFs, Word documents, or scanned files, first extract the text and then pass
+that text file to this parser.
+
 You can also import it:
 
 ```python
-from ai_parser import parse
+from ai_parser import parse, parse_document_file
 
 result = parse("Schedule a meeting on 2026-06-19 with alex@example.com")
 print(result.intent)
 print(result.entities)
+
+document_result = parse_document_file("sample.md")
+print(document_result.overall.intent)
+print(document_result.document_stats)
 ```
 
 ## How it works
@@ -71,7 +109,9 @@ The parser uses a transparent pipeline:
    a score based on how many of its keywords appear in the message.
 5. **Pick the best intent**: returns the highest-scoring intent. If no intent
    keywords match, it returns `unknown`.
-6. **Explain the result**: includes the matched keywords so the decision is easy
+6. **Split documents**: for file input, splits the document into paragraph-like
+   chunks and parses each chunk separately.
+7. **Explain the result**: includes the matched keywords so the decision is easy
    to inspect.
 
 This is not a large language model. It is a simple explainable parser that uses

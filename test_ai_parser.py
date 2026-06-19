@@ -1,6 +1,8 @@
+import tempfile
 import unittest
+from pathlib import Path
 
-from ai_parser import parse
+from ai_parser import parse, parse_document, parse_document_file
 
 
 class AIParserTests(unittest.TestCase):
@@ -32,6 +34,27 @@ class AIParserTests(unittest.TestCase):
     def test_rejects_empty_text(self):
         with self.assertRaises(ValueError):
             parse("   ")
+
+    def test_parses_document_into_overall_result_and_chunks(self):
+        result = parse_document(
+            "Please help with broken order ABCD-1234.\n\n"
+            "Schedule a meeting on 2026-06-19."
+        )
+
+        self.assertEqual(result.document_stats["chunks"], 2)
+        self.assertEqual(result.chunks[0].intent, "customer_support")
+        self.assertEqual(result.chunks[1].intent, "schedule_meeting")
+        self.assertIn("ABCD-1234", result.overall.entities["order_ids"])
+
+    def test_parses_document_file(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            document_path = Path(temp_dir) / "sample.md"
+            document_path.write_text("I want a demo and pricing quote.", encoding="utf-8")
+
+            result = parse_document_file(document_path)
+
+        self.assertEqual(result.source, str(document_path))
+        self.assertEqual(result.overall.intent, "sales_lead")
 
 
 if __name__ == "__main__":

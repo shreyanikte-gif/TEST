@@ -12,6 +12,7 @@ import json
 import re
 import string
 from dataclasses import asdict, dataclass
+from pathlib import Path
 from typing import Iterable
 
 
@@ -137,6 +138,34 @@ class ParseResult:
         return asdict(self)
 
 
+@dataclass(frozen=True)
+class DocumentChunk:
+    """Structured output for one document paragraph or block."""
+
+    chunk_number: int
+    text: str
+    intent: str
+    confidence: float
+    entities: dict[str, list[str]]
+    keywords: list[str]
+    explanation: str
+
+
+@dataclass(frozen=True)
+class DocumentParseResult:
+    """Structured parser output for a document file or document-sized string."""
+
+    source: str | None
+    document_stats: dict[str, int]
+    overall: ParseResult
+    chunks: list[DocumentChunk]
+
+    def to_dict(self) -> dict[str, object]:
+        """Return a JSON-serializable representation of the document result."""
+
+        return asdict(self)
+
+
 def normalize(text: str) -> str:
     """Lowercase text and collapse extra whitespace."""
 
@@ -225,11 +254,71 @@ def parse(text: str) -> ParseResult:
     )
 
 
+def split_document(text: str) -> list[str]:
+    """Split a document into non-empty paragraph-like chunks."""
+
+    chunks = [chunk.strip() for chunk in re.split(r"\n\s*\n", text) if chunk.strip()]
+    if chunks:
+        return chunks
+    stripped = text.strip()
+    return [stripped] if stripped else []
+
+
+def document_stats(text: str) -> dict[str, int]:
+    """Return basic document size metrics."""
+
+    return {
+        "characters": len(text),
+        "words": len(tokenize(normalize(text))),
+        "lines": len(text.splitlines()),
+        "chunks": len(split_document(text)),
+    }
+
+
+def parse_document(text: str, source: str | None = None) -> DocumentParseResult:
+    """Parse a larger text document and each paragraph-like chunk."""
+
+    overall = parse(text)
+    chunks: list[DocumentChunk] = []
+    for index, chunk_text in enumerate(split_document(text), start=1):
+        parsed_chunk = parse(chunk_text)
+        chunks.append(
+            DocumentChunk(
+                chunk_number=index,
+                text=chunk_text,
+                intent=parsed_chunk.intent,
+                confidence=parsed_chunk.confidence,
+                entities=parsed_chunk.entities,
+                keywords=parsed_chunk.keywords,
+                explanation=parsed_chunk.explanation,
+            )
+        )
+
+    return DocumentParseResult(
+        source=source,
+        document_stats=document_stats(text),
+        overall=overall,
+        chunks=chunks,
+    )
+
+
+def parse_document_file(path: str | Path) -> DocumentParseResult:
+    """Read a UTF-8 text document from disk and parse it."""
+
+    document_path = Path(path)
+    text = document_path.read_text(encoding="utf-8")
+    return parse_document(text, source=str(document_path))
+
+
 def build_arg_parser() -> argparse.ArgumentParser:
     """Build the command-line parser."""
 
-    parser = argparse.ArgumentParser(description="Parse a short message into structured data.")
-    parser.add_argument("text", help="Text message to parse")
+    parser = argparse.ArgumentParser(description="Parse text or a UTF-8 document into structured data.")
+    parser.add_argument("text", nargs="?", help="Text message to parse")
+    parser.add_argument(
+        "--file",
+        help="Path to a UTF-8 text or Markdown document to parse",
+    )
     parser.add_argument(
         "--pretty",
         action="store_true",
@@ -241,9 +330,16 @@ def build_arg_parser() -> argparse.ArgumentParser:
 def main() -> None:
     """CLI entry point."""
 
-    args = build_arg_parser().parse_args()
+    parser = build_arg_parser()
+    args = parser.parse_args()
+    if args.file and args.text:
+        parser.error("provide either text or --file, not both")
+    if not args.file and not args.text:
+        parser.error("provide text or --file PATH")
+
+    result = parse_document_file(args.file) if args.file else parse(args.text)
     indent = 2 if args.pretty else None
-    print(json.dumps(parse(args.text).to_dict(), indent=indent))
+    print(json.dumps(result.to_dict(), indent=indent))
 
 
 if __name__ == "__main__":
