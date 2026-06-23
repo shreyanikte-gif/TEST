@@ -11,13 +11,38 @@ It can:
   order IDs
 - return keywords and an explanation showing why the parser chose an intent
 - parse a UTF-8 text or Markdown document from a file
+- parse a PDF through a drag-and-drop browser website
 - run as either a Python library or a command-line tool
 
 ## Where the code is
 
 - Parser library and CLI: [`ai_parser.py`](./ai_parser.py)
+- PDF drag-and-drop website: [`index.html`](./index.html)
+- Website behavior: [`app.js`](./app.js)
+- Website styles: [`styles.css`](./styles.css)
 - Tests: [`test_ai_parser.py`](./test_ai_parser.py)
 - Usage guide: this README
+
+## Use the PDF website
+
+Open `index.html` in a browser, then drag a PDF onto the upload area.
+
+The website:
+
+1. reads the PDF locally in your browser with PDF.js
+2. extracts text from each page
+3. runs the parser on the full extracted text
+4. splits the text into paragraph-like chunks and parses each chunk
+5. shows intent, confidence, entities, keywords, chunks, and a text preview
+
+Your PDF is not uploaded by this demo. It stays in the browser. The page loads
+PDF.js from a CDN, so you need an internet connection the first time you open it.
+
+Limitations:
+
+- works best with PDFs that already contain selectable text
+- scanned image PDFs need OCR first
+- encrypted or password-protected PDFs may not parse
 
 ## Quick start
 
@@ -79,9 +104,9 @@ Document output includes:
 - `overall`: one parse result for the whole document
 - `chunks`: parse results for each paragraph-like block separated by blank lines
 
-The built-in file parser supports plain UTF-8 text, including `.txt` and `.md`.
-For PDFs, Word documents, or scanned files, first extract the text and then pass
-that text file to this parser.
+The command-line file parser supports plain UTF-8 text, including `.txt` and
+`.md`. Use the browser website above for PDFs. For scanned PDFs, Word documents,
+or images, first extract/OCR the text and then parse that text.
 
 You can also import it:
 

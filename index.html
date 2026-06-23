@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PDF AI Parser</title>
+    <link rel="stylesheet" href="styles.css">
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script defer src="app.js"></script>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <p class="eyebrow">Local PDF parser</p>
+        <h1>Drop a PDF and parse it into structured data</h1>
+        <p class="hero-copy">
+          The browser extracts text from your PDF, then an explainable parser
+          finds intent, keywords, emails, phone numbers, dates, money, and order IDs.
+        </p>
+      </section>
+
+      <section class="drop-card" aria-labelledby="upload-title">
+        <div id="drop-zone" class="drop-zone" tabindex="0">
+          <input id="pdf-input" type="file" accept="application/pdf,.pdf" hidden>
+          <div class="drop-icon" aria-hidden="true">PDF</div>
+          <h2 id="upload-title">Drop your PDF here</h2>
+          <p>or click to choose a file from your computer</p>
+          <button id="choose-file" class="primary-button" type="button">Choose PDF</button>
+        </div>
+        <p id="status" class="status" role="status">No file selected yet.</p>
+        <p class="privacy-note">
+          Files are parsed in your browser. This demo does not upload your PDF to a server.
+        </p>
+      </section>
+
+      <section id="results" class="results" hidden>
+        <div class="section-heading">
+          <p class="eyebrow">Parse result</p>
+          <h2 id="file-name">Document summary</h2>
+        </div>
+
+        <div class="summary-grid">
+          <article class="summary-card">
+            <span>Intent</span>
+            <strong id="intent">unknown</strong>
+          </article>
+          <article class="summary-card">
+            <span>Confidence</span>
+            <strong id="confidence">0%</strong>
+          </article>
+          <article class="summary-card">
+            <span>Pages</span>
+            <strong id="pages">0</strong>
+          </article>
+          <article class="summary-card">
+            <span>Words</span>
+            <strong id="words">0</strong>
+          </article>
+        </div>
+
+        <div class="result-layout">
+          <article class="panel">
+            <h3>Explanation</h3>
+            <p id="explanation"></p>
+          </article>
+
+          <article class="panel">
+            <h3>Entities</h3>
+            <div id="entities" class="entity-list"></div>
+          </article>
+        </div>
+
+        <article class="panel">
+          <h3>Top keywords</h3>
+          <div id="keywords" class="chips"></div>
+        </article>
+
+        <article class="panel">
+          <h3>Document chunks</h3>
+          <p class="panel-copy">
+            Chunks are paragraph-like blocks split from the extracted PDF text.
+          </p>
+          <div id="chunks" class="chunks"></div>
+        </article>
+
+        <article class="panel">
+          <h3>Extracted text preview</h3>
+          <pre id="text-preview"></pre>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>
